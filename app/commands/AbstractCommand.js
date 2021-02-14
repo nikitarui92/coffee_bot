@@ -4,7 +4,8 @@ export default class AbstractCommand {
 
     get name(){ return '' }
 
-    run(){
+    async run(){
+        await this.init()
         const cb = async (ctx) => {
             console.time(`exec "${this.name}" cmd`)
             await this.exec(ctx)
@@ -15,5 +16,6 @@ export default class AbstractCommand {
 
     async exec(ctx){}
 
-}
+    async init(){}
 
+}

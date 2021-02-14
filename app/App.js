@@ -1,8 +1,8 @@
-import { Telegraf, Markup } from 'telegraf'
+import { Telegraf } from 'telegraf'
 
 import Config from './Config.js'
-
 import StartCommand from './commands/StartCommad.js'
+import MenuCommand from './commands/MenuCommand.js'
 
 export default class App {
 
@@ -14,15 +14,18 @@ export default class App {
         
     }
 
-    _addCommands() {
-        const startCmd = new StartCommand();
-        this.bot.command(startCmd.name, startCmd.run())
+    async _addCommands() {
+        const startCmd = new StartCommand()
+        const menuCmd = new MenuCommand(this.bot)
+
+        this.bot.command(menuCmd.name, await menuCmd.run())
+        this.bot.command(startCmd.name, await startCmd.run())
     }
 
     async startup() {
 
         this._addMiddlewares()
-        this._addCommands()
+        await this._addCommands()
 
         await this.bot.launch()
 
