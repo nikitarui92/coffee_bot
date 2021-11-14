@@ -9,7 +9,14 @@ export default class OrderManager {
   }
 
   generateOrderId(){
-    return v4();
+    return v4().slice(0, 8).toUpperCase();
+  }
+
+  isOrderFull(order){
+    if(!order.menuItem || !order.itemCount || !order.time){
+      return false;
+    }
+    return true;
   }
 
   getOrder(tgUserId){
@@ -26,13 +33,14 @@ export default class OrderManager {
   createOrder(tgUserId, { menuItem, itemCount, time }){
     const order = { menuItem, itemCount, time, tgUserId, orderId: this.generateOrderId() };
     this.orders.set(tgUserId, order);
-    console.log(`creted: ${this.prettyOrder(tgUserId)}`);
+    console.log(`creted: ${this.prettyOrder(order)}`);
     return order;
   }
 
   updateOrder(tgUserId, { menuItem, itemCount, time }) {
     const order = this.orders.get(tgUserId);
     if (!order) {
+      console.log(`not found order: tgUserId: ${tgUserId}`);
       return;
       //throw new Error(`not found order: tgUserId: ${tgUserId}`);
     }
@@ -49,7 +57,7 @@ export default class OrderManager {
 
     this.orders.set(tgUserId, order);
 
-    console.log(`updated: ${this.prettyOrder(tgUserId)}`);
+    console.log(`updated: ${this.prettyOrder(order)}`);
 
     return order;
   }
@@ -58,11 +66,8 @@ export default class OrderManager {
     return this.orders.delete(tgUserId);
   }
 
-  prettyOrder(tgUserId) {
-    const order = this.orders.get(tgUserId);
-    if(order){
-      return `#Order: order_id: ${order.orderId} | menu_item: ${order.menuItem} | item_count: ${order.itemCount} | time: ${order.time} min`
-    }
+  prettyOrder(order) {
+      return `\#order: order_id: ${order.orderId} | menu_item: ${order.menuItem} | item_count: ${order.itemCount} | time: ${order.time} min | user_id: ${order.tgUserId}`
   }
 
 }

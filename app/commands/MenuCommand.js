@@ -35,9 +35,8 @@ export default class MenuCommand extends AbstractCommand {
             const coffeeType = ctx.match[1];
             const tgUserId = ctx.from.id;
             this.orderManager.updateOrCreateOrder(tgUserId, { menuItem: coffeeType });
-            console.log(coffeeType);
             ctx.answerCbQuery('😃 Success');
-            await this.howMuchCupsCommand.exec(ctx);
+            (await this.howMuchCupsCommand.run())(ctx);
         });
         
         return Markup.inlineKeyboard(keyb)

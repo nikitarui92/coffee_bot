@@ -33,14 +33,13 @@ export default class HowMuchCupsCommand extends AbstractCommand {
 
       this.bot.action(/^cup_(.*)$/, async (ctx) => {
         const itemCount = ctx.match[1];
-        console.log(itemCount);
         const tgUserId = ctx.from.id;
 
         this.orderManager.updateOrCreateOrder(tgUserId, { itemCount });
 
         ctx.answerCbQuery('😃 Success');
 
-        await this.whatTimeCommand.exec(ctx);
+        (await this.whatTimeCommand.run())(ctx);
       })
       
       return Markup.inlineKeyboard(keyb)

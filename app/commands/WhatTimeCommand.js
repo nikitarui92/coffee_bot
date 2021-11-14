@@ -3,6 +3,7 @@ import { Markup } from 'telegraf'
 import AbstractCommand from './AbstractCommand.js'
 import MenuService from '../services/MenuService.js'
 import OrderManager from '../services/OrderManager.js';
+import ApproveOrderCommand from './ApproveOrderCommand.js'
 
 export default class WhatTimeCommand extends AbstractCommand {
 
@@ -13,6 +14,7 @@ export default class WhatTimeCommand extends AbstractCommand {
       this.bot = bot
       this.menuService = MenuService.instance
       this.orderManager = OrderManager.instance;
+      this.approveOrderCommnad = new ApproveOrderCommand(bot);
       this.keyb = null
     }
 
@@ -29,11 +31,12 @@ export default class WhatTimeCommand extends AbstractCommand {
           keyb.push([Markup.button.callback(`${item.name}`, `time_${item.code}`)])
       }
 
-      this.bot.action(/^time_(.*)$/, (ctx) => {
+      this.bot.action(/^time_(.*)$/, async (ctx) => {
         const time = ctx.match[1];
         const tgUserId = ctx.from.id;
         this.orderManager.updateOrCreateOrder(tgUserId, { time });
         ctx.answerCbQuery('😃 Success');
+        (await this.approveOrderCommnad.run())(ctx);
       });
       
       return Markup.inlineKeyboard(keyb)
@@ -47,6 +50,6 @@ export default class WhatTimeCommand extends AbstractCommand {
 
     async exec(ctx) {
       const keyboard = await this.getKeyboard()
-      ctx.replyWithMarkdownV2('*Через какое время подпйдете*', keyboard)
+      ctx.replyWithMarkdownV2('*Через какое время подойдете*', keyboard)
     }
 }
