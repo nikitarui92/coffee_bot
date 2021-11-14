@@ -2,14 +2,18 @@ import { Markup } from 'telegraf'
 
 import AbstractCommand from './AbstractCommand.js'
 import MenuService from '../services/MenuService.js'
+import HowMuchCupsCommand from './HowMuchCupsCommand.js';
+import OrderManager from '../services/OrderManager.js';
 
 export default class MenuCommand extends AbstractCommand {
 
     constructor(bot){
-        super()
-        this.bot = bot
-        this.menuService = MenuService.instance
-        this.keyb = null
+        super();
+        this.bot = bot;
+        this.menuService = MenuService.instance;
+        this.orderManager = OrderManager.instance;
+        this.howMuchCupsCommand = new HowMuchCupsCommand(this.bot);
+        this.keyb = null;
     }
 
     get name(){ return 'menu' }
@@ -19,52 +23,34 @@ export default class MenuCommand extends AbstractCommand {
     }
 
     async createKeyboard(){
-        
-        const menu = await this.menuService.getMenu()
-
-        const getActionBtns = ({code, price}) => [
-            Markup.button.callback('+', `plus_${code}`),
-            Markup.button.callback(`${price} RUB`, `price_${code}`),
-            Markup.button.callback('-', `minus_${code}`),
-        ]
+        const menu = await this.menuService.mainMenu()
 
         const keyb = []
 
-        for (const drink of menu.drinks){
-            keyb.push([Markup.button.callback(drink.name, `drink_${drink.code}`)])
+        for (const drink of menu.drinks) {
+            keyb.push([Markup.button.callback(`${drink.name} - ${drink.price}`, `drink_${drink.code}`)])
         }
 
-        this.bot.action(/^plus_(.*)$/, (ctx) => {
-            console.log(ctx.match[1])
-            ctx.answerCbQuery('Success');
-            // ctx.editMessageText('Menu', Markup.inlineKeyboard(keyb.concat([[Markup.button.callback('3', '3')]])))
-        })
-
-        this.bot.action(/^drink_(.*)$/, (ctx) => {
-            console.log(ctx.match[1])
-            ctx.answerCbQuery('Success');
-            ctx.editMessageText('Menu', Markup.inlineKeyboard(keyb.concat([[Markup.button.callback('3', '3')]])))
-        })
+        this.bot.action(/^drink_(.*)$/, async (ctx) => {
+            const coffeeType = ctx.match[1];
+            const tgUserId = ctx.from.id;
+            this.orderManager.updateOrCreateOrder(tgUserId, { menuItem: coffeeType });
+            console.log(coffeeType);
+            ctx.answerCbQuery('😃 Success');
+            await this.howMuchCupsCommand.exec(ctx);
+        });
         
         return Markup.inlineKeyboard(keyb)
-
     }
 
-    async getKeyboard(){
-
+    async getKeyboard() {
         if (!this.keyb)
             this.keyb = await this.createKeyboard()
-
         return this.keyb
-
     }
 
-    async exec(ctx){
-        
+    async exec(ctx) {
         const keyboard = await this.getKeyboard()
-        
         ctx.replyWithMarkdownV2('*Menu*', keyboard)
-
     }
-
 }

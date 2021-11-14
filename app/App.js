@@ -1,4 +1,5 @@
 import { Telegraf } from 'telegraf'
+import { format } from 'pretty-format'
 
 import Config from './Config.js'
 import StartCommand from './commands/StartCommad.js'
@@ -10,11 +11,14 @@ export default class App {
         this.bot = new Telegraf(Config.instance.botToken)
     }
 
-    _addMiddlewares() {
-        
+    #registerMiddlewares() {
+        this.bot.use((ctx, next)=>{
+            // console.log(format(ctx.update));
+            next()
+        })
     }
 
-    async _addCommands() {
+    async #registerCommands() {
         const startCmd = new StartCommand()
         const menuCmd = new MenuCommand(this.bot)
 
@@ -23,16 +27,10 @@ export default class App {
     }
 
     async startup() {
-
-        this._addMiddlewares()
-        await this._addCommands()
-
-        await this.bot.launch()
-
-        process.once('SIGINT', () => this.bot.stop('SIGINT'))
-        process.once('SIGTERM', () => this.bot.stop('SIGTERM'))
-
+        this.#registerMiddlewares()
+        await this.#registerCommands();
+        await this.bot.launch();
+        process.once('SIGINT', () => this.bot.stop('SIGINT'));
+        process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
     }
-
 }
-
